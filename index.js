@@ -34,6 +34,10 @@ const typeDefs = gql`
     movies: [Movie]
     movie(id: ID): Movie
   }
+
+  type Mutation {
+    addMovie(title: String, releaseDate: Date, id: ID): [Movie]
+  }
 `;
 
 const actors = [
@@ -82,6 +86,20 @@ const resolvers = {
         return movie.id === id;
       });
       return foundMovie;
+    }
+  },
+  Mutation: {
+    addMovie: (parent, { id, title, releaseDate }, context, info) => {
+      const newMoviesList = [
+        ...movies,
+        // new movie data
+        {
+          id,
+          title,
+          releaseDate
+        }
+      ];
+      return newMoviesList;
     }
   },
   Date: new GraphQLScalarType({
