@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const {
   ApolloServer,
   gql
@@ -9,8 +11,16 @@ const {
   Kind
 } = require("graphql/language");
 
+const mongoose = require('mongoose')
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW}@kungfu-apigql-7vptc.mongodb.net/test?retryWrites=true&w=majority`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+const db = mongoose.connection;
+
 // gql `` parser your string into an AST
 const typeDefs = gql `
+
   scalar Date
 
   enum Status {
@@ -178,15 +188,20 @@ const server = new ApolloServer({
   }
 });
 
-server
-  .listen({
-    port: process.env.PORT || 4000
-  })
-  .then(({
-    url
-  }) => {
-    console.log(`Server started at ${url}`);
-  })
-  .catch(err => {
-    console.log(err);
-  });
+db.on("error", console.error.bind(console, "connection error:"))
+db.once("open", function () {
+  // we're connected!
+  console.log('database connected')
+  server
+    .listen({
+      port: process.env.PORT || 4000
+    })
+    .then(({
+      url
+    }) => {
+      console.log(`Server started at ${url}`);
+    })
+    .catch(err => {
+      console.log(err);
+    });
+})
