@@ -42,12 +42,17 @@ const typeDefs = gql `
     movie(id: ID): Movie
   }
 
+  input ActorInput {
+    id: ID
+  }
+
   input MovieInput {
     id: ID
     title: String
     releaseDate: Date
     rating: Int
     status: Status
+    actor: [ActorInput]
   }
 
   type Mutation {
