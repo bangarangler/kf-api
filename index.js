@@ -18,6 +18,16 @@ mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PW
 })
 const db = mongoose.connection;
 
+const movieSchema = new mongoose.Schema({
+  title: String,
+  releaseDate: Date,
+  rating: Number,
+  status: String,
+  actorIds: [String]
+})
+
+const Movie = mongoose.model('Movie', movieSchema)
+
 // gql `` parser your string into an AST
 const typeDefs = gql `
 
@@ -103,34 +113,47 @@ const movies = [{
 
 const resolvers = {
   Query: {
-    movies: () => {
-      return movies;
+    movies: async () => {
+      try {
+        const allMovies = await Movie.find()
+        return allMovies;
+      } catch (err) {
+        console.log(err)
+        return [];
+      }
     },
-    movie: (parent, {
+    movie: async (parent, {
       id
     }, context, info) => {
-      const foundMovie = movies.find(movie => {
-        return movie.id === id;
-      });
-      return foundMovie;
+      try {
+
+        const foundMovie = await Movie.findById(id);
+        return foundMovie;
+      } catch (err) {
+        console.log(err)
+        return {};
+      }
     }
   },
   Mutation: {
-    addMovie: (parent, {
+    addMovie: async (parent, {
       movie
     }, {
       userId
     }, info) => {
-      console.log('context', context)
-      if (userId) {
-        const newMoviesList = [
-          ...movies,
-          // new movie data
-          movie
-        ];
-        return newMoviesList;
+      try {
+        if (userId) {
+          await Movie.create({
+            ...movie
+          })
+          const allMovies = await Movie.find()
+          return allMovies
+        }
+        return movies;
+      } catch (err) {
+        console.log(err)
+        return [];
       }
-      return movies;
     }
   },
   Date: new GraphQLScalarType({
