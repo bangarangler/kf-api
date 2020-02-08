@@ -9,6 +9,7 @@ const {
   Kind
 } = require("graphql/language");
 
+// gql `` parser your string into an AST
 const typeDefs = gql `
   scalar Date
 
