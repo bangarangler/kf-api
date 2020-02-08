@@ -1,8 +1,15 @@
-const { ApolloServer, gql } = require("apollo-server");
-const { GraphQLScalarType } = require("graphql");
-const { Kind } = require("graphql/language");
+const {
+  ApolloServer,
+  gql
+} = require("apollo-server");
+const {
+  GraphQLScalarType
+} = require("graphql");
+const {
+  Kind
+} = require("graphql/language");
 
-const typeDefs = gql`
+const typeDefs = gql `
   scalar Date
 
   enum Status {
@@ -35,13 +42,20 @@ const typeDefs = gql`
     movie(id: ID): Movie
   }
 
+  input MovieInput {
+    id: ID
+    title: String
+    releaseDate: Date
+    rating: Int
+    status: Status
+  }
+
   type Mutation {
-    addMovie(title: String, releaseDate: Date, id: ID): [Movie]
+    addMovie(movie: MovieInput): [Movie]
   }
 `;
 
-const actors = [
-  {
+const actors = [{
     id: "gordon",
     name: "Gordon Liu"
   },
@@ -51,28 +65,23 @@ const actors = [
   }
 ];
 
-const movies = [
-  {
+const movies = [{
     id: "jfkanfmajlg",
     title: "5 Deadly Venoms",
     releaseDate: new Date("10-12-1983"),
     rating: 5,
-    actor: [
-      {
-        id: "jackie"
-      }
-    ]
+    actor: [{
+      id: "jackie"
+    }]
   },
   {
     id: "mvhhennvhdmf",
     title: "36th Chamber",
     releaseDate: new Date("10-10-1983"),
     rating: 5,
-    actor: [
-      {
-        id: "gordon"
-      }
-    ]
+    actor: [{
+      id: "gordon"
+    }]
   }
 ];
 
@@ -81,7 +90,9 @@ const resolvers = {
     movies: () => {
       return movies;
     },
-    movie: (parent, { id }, context, info) => {
+    movie: (parent, {
+      id
+    }, context, info) => {
       const foundMovie = movies.find(movie => {
         return movie.id === id;
       });
@@ -89,15 +100,13 @@ const resolvers = {
     }
   },
   Mutation: {
-    addMovie: (parent, { id, title, releaseDate }, context, info) => {
+    addMovie: (parent, {
+      movie
+    }, context, info) => {
       const newMoviesList = [
         ...movies,
         // new movie data
-        {
-          id,
-          title,
-          releaseDate
-        }
+        movie
       ];
       return newMoviesList;
     }
@@ -151,7 +160,9 @@ server
   .listen({
     port: process.env.PORT || 4000
   })
-  .then(({ url }) => {
+  .then(({
+    url
+  }) => {
     console.log(`Server started at ${url}`);
   })
   .catch(err => {
