@@ -2,7 +2,8 @@ require('dotenv').config();
 
 const {
   ApolloServer,
-  gql
+  gql,
+  PubSub
 } = require("apollo-server");
 const {
   GraphQLScalarType
@@ -79,6 +80,10 @@ const typeDefs = gql `
   type Mutation {
     addMovie(movie: MovieInput): [Movie]
   }
+
+  type Subscription {
+    movieAdded: Movie
+  }
 `;
 
 const actors = [{
@@ -91,27 +96,35 @@ const actors = [{
   }
 ];
 
-const movies = [{
-    id: "jfkanfmajlg",
-    title: "5 Deadly Venoms",
-    releaseDate: new Date("10-12-1983"),
-    rating: 5,
-    actor: [{
-      id: "jackie"
-    }]
-  },
-  {
-    id: "mvhhennvhdmf",
-    title: "36th Chamber",
-    releaseDate: new Date("10-10-1983"),
-    rating: 5,
-    actor: [{
-      id: "gordon"
-    }]
-  }
-];
+// const movies = [{
+//     id: "jfkanfmajlg",
+//     title: "5 Deadly Venoms",
+//     releaseDate: new Date("10-12-1983"),
+//     rating: 5,
+//     actor: [{
+//       id: "jackie"
+//     }]
+//   },
+//   {
+//     id: "mvhhennvhdmf",
+//     title: "36th Chamber",
+//     releaseDate: new Date("10-10-1983"),
+//     rating: 5,
+//     actor: [{
+//       id: "gordon"
+//     }]
+//   }
+// ];
+
+const pubSub = new PubSub()
+const MOVIE_ADDED = 'MOVIE_ADDED'
 
 const resolvers = {
+  Subscription: {
+    movieAdded: {
+      subscribe: () => pubSub.asyncIterator([MOVIE_ADDED])
+    },
+  },
   Query: {
     movies: async () => {
       try {
@@ -143,8 +156,11 @@ const resolvers = {
     }, info) => {
       try {
         if (userId) {
-          await Movie.create({
+          const newMovie = await Movie.create({
             ...movie
+          })
+          pubSub.publish(MOVIE_ADDED, {
+            movieAdded: newMovie
           })
           const allMovies = await Movie.find()
           return allMovies
